@@ -1,0 +1,3 @@
+export const SESSION = {
+  SET_CONNECTED: 'SESSION/SET_CONNECTED'
+}
