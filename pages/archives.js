@@ -3,6 +3,9 @@ import { AsyncStorage, Text, View } from 'react-native';
 import { Button } from 'react-native-paper';
 import Header from '../components/header';
 
+let focusListener = null;
+let blurListener = null;
+
 export default function Archives(props) {
   const [programs, setPrograms] = useState(false);
   const load = () => {
@@ -14,8 +17,18 @@ export default function Archives(props) {
     });
   };
 
-  props.navigation.addListener('didFocus', () => {
+  if (focusListener != null && focusListener.remove) {
+    focusListener.remove();
+  }
+  focusListener = props.navigation.addListener('didFocus', () => {
     load();
+  });
+
+  if (blurListener != null && blurListener.remove) {
+    blurListener.remove();
+  }
+  blurListener = props.navigation.addListener('willBlur', () => {
+    setPrograms(false);
   });
 
   const styles = {
@@ -48,7 +61,7 @@ export default function Archives(props) {
       <View style={styles.main}>
         { programs && programs.length ? programs.map(program => {
           return (
-            <Button key={program.id} style={styles.button} icon="clipboard-text" mode="outlined" onPress={() => props.navigation.navigate("Workouts", { programName: program.name + program.id})}>
+            <Button key={program.id} style={styles.button} icon="clipboard-text" mode="outlined" onPress={() => props.navigation.navigate("Workouts", { programName: program.name + program.id, workoutId: null })}>
               { program.name }
             </Button>
           )

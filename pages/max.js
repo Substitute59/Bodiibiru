@@ -4,13 +4,17 @@ import { Button, Dialog, IconButton, List } from 'react-native-paper';
 import Header from '../components/header';
 import EditableText from 'react-native-inline-edit';
 import PureChart from 'react-native-pure-chart';
+import { getFormattedDate } from '../utils/utils';
+
+let focusListener = null;
+let blurListener = null;
 
 export default function Max(props) {
   const [exercices, setExercices] = useState(false);
   const [currentExercice, setCurrentExercice] = useState(false);
   const [visibleDialog, setVisibleDialog] = useState(false);
   const [line, setLine] = useState(false);
-  const [unity, setUnity] = useState('');
+  const [unity, setUnity] = useState('kg');
   const load = () => {
     AsyncStorage.getItem('EXERCICES', (err, result) => {
       if (result) setExercices(JSON.parse(result));
@@ -23,15 +27,29 @@ export default function Max(props) {
     });
   };
 
-  props.navigation.addListener('didFocus', () => {
+  if (focusListener != null && focusListener.remove) {
+    focusListener.remove();
+  }
+  focusListener = props.navigation.addListener('didFocus', () => {
     load();
+  });
+
+  if (blurListener != null && blurListener.remove) {
+    blurListener.remove();
+  }
+  blurListener = props.navigation.addListener('willBlur', () => {
+    setExercices(false);
+    setCurrentExercice(false);
+    setVisibleDialog(false);
+    setLine(false);
+    setUnity('kg');
   });
 
   const showGraph = exercice => {
     const graphData = [];
     exercice.max.map(item => {
       graphData.push({
-        x: new Intl.DateTimeFormat('fr-FR').format(item.date),
+        x: getFormattedDate(item.date),
         y: parseInt(item.weight)
       });
     });
@@ -41,7 +59,7 @@ export default function Max(props) {
     setVisibleDialog(!visibleDialog);
   };
 
-  const showLine = () => line ? <PureChart data={line} type='line' /> : <Text>Pas de graphique</Text>;
+  const showLine = () => line && line.length ? <PureChart data={line} type='line' /> : <Text>Pas de graphique</Text>;
 
   const sendText = (exercice, text, old) => {
     if (text && text !== '' && !isNaN(parseInt(text)) && text !== old) {
@@ -62,6 +80,12 @@ export default function Max(props) {
     },
     main: {
       flex: 1
+    },
+    row: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 20
     },
     fab: {
       position: 'absolute',
@@ -102,19 +126,17 @@ export default function Max(props) {
         <ScrollView contentContainerStyle={styles.main}>
           { exercices ? exercices.map(exercice => {
             return (
-              <View key={exercice.id}>
-                <List.Item
-                  title={<EditableText
-                    text={ exercice.max && exercice.max.length ? exercice.max[exercice.max.length - 1].weight : 'NC' }
-                    sendText={text => sendText(exercice, text, exercice.max && exercice.max.length ? exercice.max[exercice.max.length - 1].weight : 'NC')}
-                  />}
-                  left={() => <Text style={styles.name}>{ exercice.name }</Text>}
-                  right={() => <IconButton
-                    style={styles.deleteIcon}
-                    icon="chart-line"
-                    size={20}
-                    onPress={() => showGraph(exercice)} />}
+              <View key={exercice.id} style={styles.row}>
+                <Text style={styles.name}>{ exercice.name }</Text>
+                <EditableText
+                  text={ exercice.max && exercice.max.length ? exercice.max[exercice.max.length - 1].weight : 'NC' }
+                  sendText={text => sendText(exercice, text, exercice.max && exercice.max.length ? exercice.max[exercice.max.length - 1].weight : 'NC')}
                 />
+                <IconButton
+                  style={styles.deleteIcon}
+                  icon="chart-line"
+                  size={20}
+                  onPress={() => showGraph(exercice)} />
               </View>
             )
           }) : <Text>Aucun exercice</Text> }

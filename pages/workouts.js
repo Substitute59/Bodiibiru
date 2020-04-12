@@ -3,6 +3,10 @@ import { AsyncStorage, ScrollView, Text, View } from 'react-native';
 import { Button, Dialog, IconButton, List } from 'react-native-paper';
 import Header from '../components/header';
 import Workout from '../components/workout';
+import { getFormattedDate } from '../utils/utils';
+
+let focusListener = null;
+let blurListener = null;
 
 export default function Workouts(props) {
   const [program, setProgram] = useState(false);
@@ -27,8 +31,21 @@ export default function Workouts(props) {
     });
   };
 
-  props.navigation.addListener('didFocus', () => {
+  if (focusListener != null && focusListener.remove) {
+    focusListener.remove();
+  }
+  focusListener = props.navigation.addListener('didFocus', () => {
     load();
+  });
+
+  if (blurListener != null && blurListener.remove) {
+    blurListener.remove();
+  }
+  blurListener = props.navigation.addListener('willBlur', () => {
+    setProgram(false);
+    setWorkout(false);
+    setExercices(false);
+    setVisibleDialog(false);
   });
 
   const showWorkout = (wo) => {
@@ -61,7 +78,7 @@ export default function Workouts(props) {
               return wo.done ? (
                 <List.Item
                   key={index}
-                  title={`Séance du ${ new Intl.DateTimeFormat('fr-FR').format(wo.date) }`}
+                  title={`Séance du ${ getFormattedDate(wo.date) }`}
                   right={() => <IconButton
                     style={styles.eyeIcon}
                     icon="eye"

@@ -4,6 +4,9 @@ import { Button, Dialog, FAB, IconButton, List, Modal } from 'react-native-paper
 import Header from '../components/header';
 import NewExercice from '../modals/newExercice';
 
+let focusListener = null;
+let blurListener = null;
+
 export default function Exercices(props) {
   const [exercices, setExercices] = useState(false);
   const [currentExercice, setCurrentExercice] = useState(false);
@@ -15,8 +18,21 @@ export default function Exercices(props) {
     });
   };
 
-  props.navigation.addListener('didFocus', () => {
+  if (focusListener != null && focusListener.remove) {
+    focusListener.remove();
+  }
+  focusListener = props.navigation.addListener('didFocus', () => {
     load();
+  });
+
+  if (blurListener != null && blurListener.remove) {
+    blurListener.remove();
+  }
+  blurListener = props.navigation.addListener('willBlur', () => {
+    setExercices(false);
+    setCurrentExercice(false);
+    setVisible(false);
+    setVisibleDialog(false);
   });
 
   const confirmDeleteExercice = exercice => {

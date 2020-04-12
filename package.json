@@ -11,6 +11,7 @@
     "expo": "~37.0.3",
     "expo-av": "^8.1.0",
     "expo-image-picker": "^8.1.0",
+    "expo-keep-awake": "^8.1.0",
     "react": "~16.9.0",
     "react-dom": "~16.9.0",
     "react-native": "^0.62.1",

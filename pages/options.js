@@ -3,22 +3,14 @@ import { AsyncStorage, View } from 'react-native';
 import { Button, Snackbar, TextInput, ToggleButton } from 'react-native-paper';
 import Header from '../components/header';
 
-export default function Options(props) {
-  const setOptions = () => {
-    const options = {
-      unity: unity,
-      exoBreak: exoBreak,
-      setBreak: setBreak
-    };
-    AsyncStorage.setItem('OPTIONS', JSON.stringify(options), () => {
-      setVisible(!visible)
-    });
-  };
+let focusListener = null;
+let blurListener = null;
 
+export default function Options(props) {
   const [visible, setVisible] = useState(false);
-  const [unity, setUnity] = useState('');
-  const [exoBreak, setExoBreak] = useState('');
-  const [setBreak, setSetBreak] = useState('');
+  const [unity, setUnity] = useState('kg');
+  const [exoBreak, setExoBreak] = useState(180);
+  const [setBreak, setSetBreak] = useState(120);
   const load = () => {
     AsyncStorage.getItem('OPTIONS', (err, result) => {
       if (result) {
@@ -30,9 +22,33 @@ export default function Options(props) {
     });
   };
 
-  props.navigation.addListener('didFocus', () => {
+  if (focusListener != null && focusListener.remove) {
+    focusListener.remove();
+  }
+  focusListener = props.navigation.addListener('didFocus', () => {
     load();
   });
+
+  if (blurListener != null && blurListener.remove) {
+    blurListener.remove();
+  }
+  blurListener = props.navigation.addListener('willBlur', () => {
+    setVisible(false);
+    setUnity('kg');
+    setExoBreak(180);
+    setSetBreak(120);
+  });
+
+  const setOptions = () => {
+    const options = {
+      unity: unity,
+      exoBreak: exoBreak,
+      setBreak: setBreak
+    };
+    AsyncStorage.setItem('OPTIONS', JSON.stringify(options), () => {
+      setVisible(!visible)
+    });
+  };
 
   const styles = {
     container: {

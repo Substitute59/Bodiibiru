@@ -5,6 +5,15 @@ import Header from '../components/header';
 import NewWorkout from '../modals/newWorkout';
 import Workout from '../components/workout';
 import { Audio } from 'expo-av';
+import { useKeepAwake } from 'expo-keep-awake';
+
+const beep = new Audio.Sound();
+const beepbeepbeep = new Audio.Sound();
+beep.loadAsync(require('../assets/sounds/beep.mp3'));
+beepbeepbeep.loadAsync(require('../assets/sounds/beepbeepbeep.mp3'));
+
+let focusListener = null;
+let blurListener = null;
 
 const formatNumber = number => `0${number}`.slice(-2);
 
@@ -15,7 +24,7 @@ const getRemaining = (time) => {
 }
 
 export default function Program(props) {
-  const [exercices, setExercices] = useState('');
+  const [exercices, setExercices] = useState(false);
   const [options, setOptions] = useState(false);
   const [program, setProgram] = useState(false);
   const [currentWorkout, setCurrentWorkout] = useState(false);
@@ -24,15 +33,11 @@ export default function Program(props) {
   const [visible, setVisible] = useState(false);
   const [visibleSnack, setVisibleSnack] = useState(false);
   const [visibleDialog, setVisibleDialog] = useState(false);
-  const [showError, setShowError]= useState(false);
+  const [showError, setShowError] = useState(false);
   const [step, setStep] = useState('begin');
   const [secondsRemaining, setSecondsRemaining] = useState(false);
   const [isActive, setIsActive] = useState(false);
   const { mins, secs } = getRemaining(secondsRemaining);
-  const beep = new Audio.Sound();
-  const beepbeepbeep = new Audio.Sound();
-  beep.loadAsync(require('../assets/sounds/beep.mp3'));
-  beepbeepbeep.loadAsync(require('../assets/sounds/beepbeepbeep.mp3'));
   const load = () => {
     AsyncStorage.getItem(props.navigation.state.params.programName, (err, result) => {
       if (result) {
@@ -54,8 +59,30 @@ export default function Program(props) {
     });
   };
 
-  props.navigation.addListener('didFocus', () => {
+  if (focusListener != null && focusListener.remove) {
+    focusListener.remove();
+  }
+  focusListener = props.navigation.addListener('didFocus', () => {
     load();
+  });
+
+  if (blurListener != null && blurListener.remove) {
+    blurListener.remove();
+  }
+  blurListener = props.navigation.addListener('willBlur', () => {
+    setExercices(false);
+    setOptions(false);
+    setProgram(false);
+    setCurrentWorkout(false);
+    setCurrentSet(0);
+    setReps('');
+    setVisible(false);
+    setVisibleSnack(false);
+    setVisibleDialog(false);
+    setShowError(false);
+    setStep('begin');
+    setSecondsRemaining(false);
+    setIsActive(false);
   });
 
   const beginWorkout = () => {
@@ -83,6 +110,7 @@ export default function Program(props) {
     if (isActive && secondsRemaining > 0) {
       interval = setInterval(() => {
         if (secondsRemaining <= 5 && secondsRemaining > 1) {
+          beep.stopAsync();
           beep.playAsync();
         } else if (secondsRemaining === 1) {
           beepbeepbeep.playAsync();
@@ -154,15 +182,15 @@ export default function Program(props) {
   }
 
   const renderSet = () => {
-    const exercice = exercices.filter(item => item.id === currentWorkout.sets[currentSet].exercice);
+    const exercice = exercices && exercices.length ? exercices.filter(item => item.id === currentWorkout.sets[currentSet].exercice) : [];
 
-    return <View>
+    return exercice && exercice.length ? <View>
       <Title style={styles.title}>{ exercice[0].name }</Title>
       <Image
         source={{ uri: exercice[0].image.localUri }}
         style={styles.thumbnail} />
       <Text style={styles.infosExercice}>{currentWorkout.sets[currentSet].reps}reps@{currentWorkout.sets[currentSet].weight}</Text>
-    </View>;
+    </View> : null;
   }
 
   const styles = {
@@ -249,6 +277,8 @@ export default function Program(props) {
       top: 7
     }
   };
+
+  useKeepAwake();
 
   return (
     <View style={styles.container}>
