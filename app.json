@@ -1,0 +1,44 @@
+{
+  "expo": {
+    "name": "Bodiibiru",
+    "slug": "Bodiibiru",
+    "platforms": [
+      "ios",
+      "android",
+      "web"
+    ],
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "updates": {
+      "fallbackToCacheTimeout": 0
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "bundleIdentifier": "com.labowebfrance.bodiibiru",
+      "buildNumber": "1.0.0",
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSPhotoLibraryUsageDescription": "For choosing a photo",
+        "NSCameraUsageDescription": "For taking a photo",
+        "NSPhotoLibraryAddUsageDescription": "For saving a photo"
+      }
+    },
+    "android": {
+      "package": "com.labowebfrance.bodiibiru",
+      "versionCode": 1,
+      "permissions": [
+        "CAMERA",
+        "WRITE_EXTERNAL_STORAGE"
+      ]
+    },
+    "sdkVersion": "37.0.0"
+  }
+}
