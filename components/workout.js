@@ -19,7 +19,8 @@ export default function Workout(props) {
       lineHeight: 15,
       textAlign: 'center',
       borderColor: 'rgba(0, 0, 0, 0.12)',
-      borderWidth: 1
+      borderWidth: 1,
+      fontSize: 10
     }
   };
 

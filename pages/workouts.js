@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { AsyncStorage, ScrollView, Text, View } from 'react-native';
-import { Button, Dialog, IconButton, List } from 'react-native-paper';
+import { Button, Dialog, IconButton, List, Portal } from 'react-native-paper';
 import Header from '../components/header';
 import Workout from '../components/workout';
 import { getFormattedDate } from '../utils/utils';
@@ -15,7 +15,7 @@ export default function Workouts(props) {
   const [visibleDialog, setVisibleDialog] = useState(false);
   const load = () => {
     AsyncStorage.getItem(props.navigation.state.params.programName, (err, result) => {
-      if (result) {
+      if (result && result.length) {
         const currentProgram = JSON.parse(result);
         setProgram(currentProgram);
         const currentWorkoutId = props.navigation.state.params.workoutId;
@@ -27,7 +27,7 @@ export default function Workouts(props) {
       }
     });
     AsyncStorage.getItem('EXERCICES', (err, result) => {
-      if (result) setExercices(JSON.parse(result));
+      if (result && result.length) setExercices(JSON.parse(result));
     });
   };
 
@@ -90,19 +90,21 @@ export default function Workouts(props) {
           </ScrollView>
         ) : null}
       </View>
-      <Dialog
-        visible={visibleDialog}
-        onDismiss={() => setVisibleDialog(!visibleDialog)}>
-        <Dialog.Title>Aperçu de la séance</Dialog.Title>
-        <Dialog.Content>
-          <ScrollView style={styles.scrollDialog}>
-            { workout.sets && workout.sets.length ? workout.sets.map((item, index) => <Workout key={index} item={item} exercices={exercices} />): null }
-          </ScrollView>
-        </Dialog.Content>
-        <Dialog.Actions>
-          <Button onPress={() => setVisibleDialog(!visibleDialog)}>Fermer</Button>
-        </Dialog.Actions>
-      </Dialog>
+      <Portal>
+        <Dialog
+          visible={visibleDialog}
+          onDismiss={() => setVisibleDialog(!visibleDialog)}>
+          <Dialog.Title>Aperçu de la séance</Dialog.Title>
+          <Dialog.Content>
+            <ScrollView style={styles.scrollDialog}>
+              { workout.sets && workout.sets.length ? workout.sets.map((item, index) => <Workout key={index} item={item} exercices={exercices} />): null }
+            </ScrollView>
+          </Dialog.Content>
+          <Dialog.Actions>
+            <Button onPress={() => setVisibleDialog(!visibleDialog)}>Fermer</Button>
+          </Dialog.Actions>
+        </Dialog>
+      </Portal>
     </View>
   )
 }

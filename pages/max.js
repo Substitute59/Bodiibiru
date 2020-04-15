@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { AsyncStorage, ScrollView, Text, View } from 'react-native';
-import { Button, Dialog, IconButton, List } from 'react-native-paper';
+import { Button, Dialog, IconButton, List, Portal } from 'react-native-paper';
 import Header from '../components/header';
 import EditableText from 'react-native-inline-edit';
 import PureChart from 'react-native-pure-chart';
@@ -17,10 +17,10 @@ export default function Max(props) {
   const [unity, setUnity] = useState('kg');
   const load = () => {
     AsyncStorage.getItem('EXERCICES', (err, result) => {
-      if (result) setExercices(JSON.parse(result));
+      if (result && result.length) setExercices(JSON.parse(result));
     });
     AsyncStorage.getItem('OPTIONS', (err, result) => {
-      if (result) {
+      if (result && result.length) {
         const options = JSON.parse(result);
         setUnity(options.unity);
       }
@@ -81,6 +81,11 @@ export default function Max(props) {
     main: {
       flex: 1
     },
+    noresults: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
     row: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -122,37 +127,42 @@ export default function Max(props) {
   return (
     <View style={styles.container}>
       <Header title="Max (1RM)" navigation={props.navigation} />
-      <View style={styles.main}>
-        <ScrollView contentContainerStyle={styles.main}>
-          { exercices ? exercices.map(exercice => {
-            return (
-              <View key={exercice.id} style={styles.row}>
-                <Text style={styles.name}>{ exercice.name }</Text>
-                <EditableText
-                  text={ exercice.max && exercice.max.length ? exercice.max[exercice.max.length - 1].weight : 'NC' }
-                  sendText={text => sendText(exercice, text, exercice.max && exercice.max.length ? exercice.max[exercice.max.length - 1].weight : 'NC')}
-                />
-                <IconButton
-                  style={styles.deleteIcon}
-                  icon="chart-line"
-                  size={20}
-                  onPress={() => showGraph(exercice)} />
-              </View>
-            )
-          }) : <Text>Aucun exercice</Text> }
-          <Dialog
-             visible={visibleDialog}
-             onDismiss={() => setVisibleDialog(!visibleDialog)}>
-            <Dialog.Title>Evolution { currentExercice.name }</Dialog.Title>
-            <Dialog.Content>
-              <ScrollView horizontal={true}>{ showLine() }</ScrollView>
-            </Dialog.Content>
-            <Dialog.Actions>
-              <Button onPress={() => setVisibleDialog(!visibleDialog)}>Ok</Button>
-            </Dialog.Actions>
-          </Dialog>
-        </ScrollView>
-      </View>
+      { exercices && exercices.length ?
+        <View style={styles.main}>
+          <ScrollView contentContainerStyle={styles.main}>
+            { exercices.map(exercice => {
+              return (
+                <View key={exercice.id} style={styles.row}>
+                  <Text style={styles.name}>{ exercice.name }</Text>
+                  <EditableText
+                    text={ exercice.max && exercice.max.length ? exercice.max[exercice.max.length - 1].weight : 'NC' }
+                    sendText={text => sendText(exercice, text, exercice.max && exercice.max.length ? exercice.max[exercice.max.length - 1].weight : 'NC')}
+                  />
+                  <IconButton
+                    style={styles.deleteIcon}
+                    icon="chart-line"
+                    size={20}
+                    onPress={() => showGraph(exercice)} />
+                </View>
+              )})
+            }
+          </ScrollView>
+        </View> : <View style={styles.noresults}>
+          <Text>Aucun exercice</Text>
+        </View> }
+      <Portal>
+        <Dialog
+          visible={visibleDialog}
+          onDismiss={() => setVisibleDialog(!visibleDialog)}>
+          <Dialog.Title>Evolution { currentExercice.name }</Dialog.Title>
+          <Dialog.Content>
+            <ScrollView horizontal={true}>{ showLine() }</ScrollView>
+          </Dialog.Content>
+          <Dialog.Actions>
+            <Button onPress={() => setVisibleDialog(!visibleDialog)}>Ok</Button>
+          </Dialog.Actions>
+        </Dialog>
+      </Portal>
     </View>
   )
 }

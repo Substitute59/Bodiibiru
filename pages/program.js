@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { AsyncStorage, Image, ScrollView, Text, View } from 'react-native';
-import { Button, Dialog, FAB, IconButton, Modal, Snackbar, TextInput, Title } from 'react-native-paper';
+import { Button, Dialog, FAB, IconButton, Modal, Portal, Snackbar, TextInput, Title } from 'react-native-paper';
 import Header from '../components/header';
 import NewWorkout from '../modals/newWorkout';
 import Workout from '../components/workout';
@@ -40,7 +40,7 @@ export default function Program(props) {
   const { mins, secs } = getRemaining(secondsRemaining);
   const load = () => {
     AsyncStorage.getItem(props.navigation.state.params.programName, (err, result) => {
-      if (result) {
+      if (result && result.length) {
         const currentProgram = JSON.parse(result);
         setProgram(currentProgram);
         if (currentProgram.workouts && currentProgram.workouts.length) {
@@ -52,10 +52,10 @@ export default function Program(props) {
       }
     });
     AsyncStorage.getItem('EXERCICES', (err, result) => {
-      if (result) setExercices(JSON.parse(result));
+      if (result && result.length) setExercices(JSON.parse(result));
     });
     AsyncStorage.getItem('OPTIONS', (err, result) => {
-      if (result) setOptions(JSON.parse(result));
+      if (result && result.length) setOptions(JSON.parse(result));
     });
   };
 
@@ -95,7 +95,7 @@ export default function Program(props) {
       if (currentExercice === currentWorkout.sets[currentSet + 1].exercice) {
         setSecondsRemaining(currentWorkout.sets[currentSet].pause);
       } else {
-        setSecondsRemaining(options.exoBreak);
+        setSecondsRemaining(options.exoBreak ? options.exoBreak : 180);
       }
       setCurrentSet(currentSet + 1);
       setStep('pause');
@@ -158,7 +158,7 @@ export default function Program(props) {
     setStep('end');
     program.nextWorkout = program.nextWorkout + 1;
     AsyncStorage.getItem('PROGRAMS', (err, result) => {
-      if (result) {
+      if (result && result.length) {
         const allPrograms = JSON.parse(result).map(prog => {
           if (prog.id === program.id) {
             prog.nextWorkout = program.nextWorkout;
@@ -294,6 +294,12 @@ export default function Program(props) {
               <Button style={styles.button} icon="timer" mode="contained" onPress={() => beginWorkout()}>
                 Commencer
               </Button>
+              <FAB
+                style={styles.fab}
+                small
+                icon="plus"
+                onPress={() => setVisible(!visible)}
+              />
             </View>
           ) : null }
           {step === 'exercice' ? (
@@ -326,7 +332,7 @@ export default function Program(props) {
           {step === 'end' ? (
             <View style={styles.set}>
               <Title style={[styles.title, styles.titleEnd]}>Bravo !!</Title>
-              <Button style={styles.buttonLarge} mode="contained" icon="clipboard-text" onPress={() => props.navigation.navigate("Workouts", { programName: program.name + program.id, workoutId: currentWorkout.id})}>
+              <Button style={styles.buttonLarge} mode="contained" icon="clipboard-text" onPress={() => props.navigation.navigate("Workouts", { programName: program.name + program.id, workoutId: currentWorkout.id })}>
                 Résumé de la séance
               </Button>
               <Button style={styles.buttonLarge} mode="outlined" icon="home" onPress={() => props.navigation.navigate("Home")}>
@@ -344,24 +350,26 @@ export default function Program(props) {
       ) : (
         <View style={styles.main}>
           <Text>Aucune séance programmée</Text>
+          <FAB
+            style={styles.fab}
+            small
+            icon="plus"
+            onPress={() => setVisible(!visible)}
+          />
         </View>
       )}
-      <FAB
-        style={styles.fab}
-        small
-        icon="plus"
-        onPress={() => setVisible(!visible)}
-      />
-      <Modal visible={visible} onDismiss={() => setVisible(!visible)} contentContainerStyle={styles.modal}>
-        <NewWorkout
-          setVisible={setVisible}
-          setVisibleSnack={setVisibleSnack}
-          visible={visible}
-          load={load}
-          exercices={exercices}
-          program={program}
-          options={options} />
-      </Modal>
+      <Portal>
+        <Modal visible={visible} onDismiss={() => setVisible(!visible)} contentContainerStyle={styles.modal}>
+          <NewWorkout
+            setVisible={setVisible}
+            setVisibleSnack={setVisibleSnack}
+            visible={visible}
+            load={load}
+            exercices={exercices}
+            program={program}
+            options={options} />
+        </Modal>
+      </Portal>
       <Snackbar
         visible={visibleSnack}
         duration={4000}
@@ -369,26 +377,28 @@ export default function Program(props) {
       >
         Séries ajoutées à la séance
       </Snackbar>
-      <Dialog
+      <Portal>
+        <Dialog
           visible={visibleDialog}
           onDismiss={() => setVisibleDialog(!visibleDialog)}>
-        <Dialog.Title>Echec</Dialog.Title>
-        <Dialog.Content>
-          <Text>Combien de répétitions ont été réalisées ?</Text>
-          <TextInput
-            keyboardType={'numeric'}
-            style={styles.input}
-            label='Reps'
-            value={reps}
-            onChangeText={text => setReps(text)}
-          />
-          {showError ? <Text style={styles.error}>Remplissez le nombre de répétitions</Text> : null }
-        </Dialog.Content>
-        <Dialog.Actions>
-          <Button onPress={() => setVisibleDialog(!visibleDialog)}>Annuler</Button>
-          <Button onPress={() => updateProgram()}>Confirmer</Button>
-        </Dialog.Actions>
-      </Dialog>
+          <Dialog.Title>Echec</Dialog.Title>
+          <Dialog.Content>
+            <Text>Combien de répétitions ont été réalisées ?</Text>
+            <TextInput
+              keyboardType={'numeric'}
+              style={styles.input}
+              label='Reps'
+              value={reps}
+              onChangeText={text => setReps(text)}
+            />
+            {showError ? <Text style={styles.error}>Remplissez le nombre de répétitions</Text> : null }
+          </Dialog.Content>
+          <Dialog.Actions>
+            <Button onPress={() => setVisibleDialog(!visibleDialog)}>Annuler</Button>
+            <Button onPress={() => updateProgram()}>Confirmer</Button>
+          </Dialog.Actions>
+        </Dialog>
+      </Portal>
     </View>
   )
 }

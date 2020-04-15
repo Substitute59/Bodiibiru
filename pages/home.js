@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { AsyncStorage, Text, View } from 'react-native';
-import { Button, Dialog, IconButton, Modal, FAB } from 'react-native-paper';
+import { Button, Dialog, Modal, FAB, Portal } from 'react-native-paper';
 import Header from '../components/header';
 import NewProgram from '../modals/newProgram';
 
@@ -14,7 +14,7 @@ export default function Home(props) {
   const [visibleDialog, setVisibleDialog] = useState(false);
   const load = () => {
     AsyncStorage.getItem('PROGRAMS', (err, result) => {
-      if (result) setPrograms(JSON.parse(result));
+      if (result && result.length) setPrograms(JSON.parse(result));
     });
   };
 
@@ -43,7 +43,7 @@ export default function Home(props) {
   const deleteProgram = program => {
     setPrograms(programs.filter(item => item !== program));
     AsyncStorage.setItem('PROGRAMS', JSON.stringify(programs.filter(item => item !== program)));
-    AsyncStorage.removeItem(program.anme + program.id);
+    AsyncStorage.removeItem(program.name + program.id);
     setVisibleDialog(!visibleDialog);
   }
 
@@ -78,7 +78,7 @@ export default function Home(props) {
     <View style={styles.container}>
       <Header title="Bodiibiru" navigation={props.navigation} />
       <View style={styles.main}>
-        { programs ? programs.map(program => {
+        { programs && programs.length ? programs.map(program => {
           return (
             <View key={program.id} style={styles.buttonsContainer}>
               <Button style={styles.button} icon="clipboard-text" mode="outlined" onPress={() => props.navigation.navigate("Program", { programName: program.name + program.id})}>
@@ -96,21 +96,25 @@ export default function Home(props) {
           icon="plus"
           onPress={() => setVisible(!visible)}
         />
-        <Modal visible={visible} onDismiss={() => setVisible(!visible)} contentContainerStyle={styles.modal}>
-          <NewProgram setVisible={setVisible} visible={visible} load={load} />
-        </Modal>
-        <Dialog
-            visible={visibleDialog}
-            onDismiss={() => setVisibleDialog(!visibleDialog)}>
-          <Dialog.Title>Êtes vous certain ?</Dialog.Title>
-          <Dialog.Content>
-            <Text>Supprimer ce programme ({ currentProgram.name }) ?</Text>
-          </Dialog.Content>
-          <Dialog.Actions>
-            <Button onPress={() => setVisibleDialog(!visibleDialog)}>Annuler</Button>
-            <Button onPress={() => deleteProgram(currentProgram)}>Confirmer</Button>
-          </Dialog.Actions>
-        </Dialog>
+        <Portal>
+          <Modal visible={visible} onDismiss={() => setVisible(!visible)} contentContainerStyle={styles.modal}>
+            <NewProgram setVisible={setVisible} visible={visible} load={load} />
+          </Modal>
+        </Portal>
+        <Portal>
+          <Dialog
+              visible={visibleDialog}
+              onDismiss={() => setVisibleDialog(!visibleDialog)}>
+            <Dialog.Title>Êtes vous certain ?</Dialog.Title>
+            <Dialog.Content>
+              <Text>Supprimer ce programme ({ currentProgram.name }) ?</Text>
+            </Dialog.Content>
+            <Dialog.Actions>
+              <Button onPress={() => setVisibleDialog(!visibleDialog)}>Annuler</Button>
+              <Button onPress={() => deleteProgram(currentProgram)}>Confirmer</Button>
+            </Dialog.Actions>
+          </Dialog>
+        </Portal>
       </View>
     </View>
   )

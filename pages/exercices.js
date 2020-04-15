@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { AsyncStorage, Image, ScrollView, Text, View } from 'react-native';
-import { Button, Dialog, FAB, IconButton, List, Modal } from 'react-native-paper';
+import { Button, Dialog, FAB, IconButton, List, Modal, Portal } from 'react-native-paper';
 import Header from '../components/header';
 import NewExercice from '../modals/newExercice';
 
@@ -14,7 +14,7 @@ export default function Exercices(props) {
   const [visibleDialog, setVisibleDialog] = useState(false);
   const load = () => {
     AsyncStorage.getItem('EXERCICES', (err, result) => {
-      if (result) setExercices(JSON.parse(result));
+      if (result && result.length) setExercices(JSON.parse(result));
     });
   };
 
@@ -44,6 +44,7 @@ export default function Exercices(props) {
     setExercices(exercices.filter(item => item !== exercice));
     AsyncStorage.setItem('EXERCICES', JSON.stringify(exercices.filter(item => item !== exercice)));
     setVisibleDialog(!visibleDialog);
+    load();
   }
 
   const styles = {
@@ -52,6 +53,11 @@ export default function Exercices(props) {
     },
     main: {
       flex: 1
+    },
+    noresults: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
     },
     fab: {
       position: 'absolute',
@@ -85,48 +91,56 @@ export default function Exercices(props) {
   return (
     <View style={styles.container}>
       <Header title="Exercices" navigation={props.navigation} />
-      <View style={styles.main}>
-        <ScrollView contentContainerStyle={styles.main}>
-          { exercices ? exercices.map(exercice => {
-            return (
-              <View key={exercice.id}>
-                <List.Item
-                  title={exercice.name}
-                  left={() => exercice.image ? <Image
-                    source={{ uri: exercice.image.localUri }}
-                    style={styles.thumbnail} /> : <Text style={styles.nothumbnail}>Aucune photo</Text>}
-                  right={() => <IconButton
-                    style={styles.deleteIcon}
-                    icon="delete"
-                    size={20}
-                    onPress={() => confirmDeleteExercice(exercice)} />}
-                />
-              </View>
-            )
-          }) : <Text>Aucun exercice</Text> }
-          <Modal visible={visible} onDismiss={() => setVisible(!visible)} contentContainerStyle={styles.modal}>
-            <NewExercice setVisible={setVisible} visible={visible} load={load} />
-          </Modal>
-          <Dialog
-             visible={visibleDialog}
-             onDismiss={() => setVisibleDialog(!visibleDialog)}>
-            <Dialog.Title>Êtes vous certain ?</Dialog.Title>
-            <Dialog.Content>
-              <Text>Supprimer cet exercice ({ currentExercice.name }) ?</Text>
-            </Dialog.Content>
-            <Dialog.Actions>
-              <Button onPress={() => setVisibleDialog(!visibleDialog)}>Annuler</Button>
-              <Button onPress={() => deleteExercice(currentExercice)}>Confirmer</Button>
-            </Dialog.Actions>
-          </Dialog>
-        </ScrollView>
-        <FAB
-          style={styles.fab}
-          small
-          icon="plus"
-          onPress={() => setVisible(!visible)}
-        />
-      </View>
+      { exercices && exercices.length ?
+        <View style={styles.main}>
+          <ScrollView contentContainerStyle={styles.main}>
+            { exercices.map(exercice => {
+              return (
+                <View key={exercice.id}>
+                  <List.Item
+                    title={exercice.name}
+                    left={() => exercice.image ? <Image
+                      source={{ uri: exercice.image.localUri }}
+                      style={styles.thumbnail} /> : <Text style={styles.nothumbnail}>Aucune photo</Text>}
+                    right={() => <IconButton
+                      style={styles.deleteIcon}
+                      icon="delete"
+                      size={20}
+                      onPress={() => confirmDeleteExercice(exercice)} />}
+                  />
+                </View>
+              )})
+            }
+          </ScrollView>
+        </View> : <View style={styles.noresults}>
+          <Text>Aucun exercice</Text>
+        </View>
+      }
+      <Portal>
+        <Modal visible={visible} onDismiss={() => setVisible(!visible)} contentContainerStyle={styles.modal}>
+          <NewExercice setVisible={setVisible} visible={visible} load={load} />
+        </Modal>
+      </Portal>
+      <Portal>
+        <Dialog
+          visible={visibleDialog}
+          onDismiss={() => setVisibleDialog(!visibleDialog)}>
+          <Dialog.Title>Êtes vous certain ?</Dialog.Title>
+          <Dialog.Content>
+            <Text>Supprimer cet exercice ({ currentExercice.name }) ?</Text>
+          </Dialog.Content>
+          <Dialog.Actions>
+            <Button onPress={() => setVisibleDialog(!visibleDialog)}>Annuler</Button>
+            <Button onPress={() => deleteExercice(currentExercice)}>Confirmer</Button>
+          </Dialog.Actions>
+        </Dialog>
+      </Portal>
+      <FAB
+        style={styles.fab}
+        small
+        icon="plus"
+        onPress={() => setVisible(!visible)}
+      />
     </View>
   )
 }

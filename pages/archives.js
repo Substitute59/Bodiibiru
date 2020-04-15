@@ -10,7 +10,7 @@ export default function Archives(props) {
   const [programs, setPrograms] = useState(false);
   const load = () => {
     AsyncStorage.getItem('PROGRAMS', (err, result) => {
-      if (result) {
+      if (result && result.length) {
         const allPrograms = JSON.parse(result);
         setPrograms(allPrograms.filter(item => item.nextWorkout !== 0));
       }

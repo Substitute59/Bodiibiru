@@ -9,15 +9,15 @@ let blurListener = null;
 export default function Options(props) {
   const [visible, setVisible] = useState(false);
   const [unity, setUnity] = useState('kg');
-  const [exoBreak, setExoBreak] = useState(180);
-  const [setBreak, setSetBreak] = useState(120);
+  const [exoBreak, setExoBreak] = useState('180');
+  const [setBreak, setSetBreak] = useState('120');
   const load = () => {
     AsyncStorage.getItem('OPTIONS', (err, result) => {
-      if (result) {
+      if (result && result.length) {
         const options = JSON.parse(result);
         setUnity(options.unity ? options.unity : 'kg');
-        setExoBreak(options.exoBreak ? options.exoBreak : 180);
-        setSetBreak(options.setBreak ? options.setBreak : 120);
+        setExoBreak(options.exoBreak ? options.exoBreak : '180');
+        setSetBreak(options.setBreak ? options.setBreak : '120');
       }
     });
   };
@@ -35,8 +35,8 @@ export default function Options(props) {
   blurListener = props.navigation.addListener('willBlur', () => {
     setVisible(false);
     setUnity('kg');
-    setExoBreak(180);
-    setSetBreak(120);
+    setExoBreak('180');
+    setSetBreak('120');
   });
 
   const setOptions = () => {

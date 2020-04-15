@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { AsyncStorage, ScrollView, Text, View } from 'react-native';
-import { Button, Dialog, IconButton, Menu, TextInput, Title } from 'react-native-paper';
+import { Button, Dialog, IconButton, Menu, Portal, TextInput, Title } from 'react-native-paper';
 import Workout from '../components/workout';
 
 export default function NewWorkout(props) {
@@ -12,7 +12,7 @@ export default function NewWorkout(props) {
           {
             exercice: exercice.id,
             reps,
-            weight: weight + props.options.unity,
+            weight: `${weight}${props.options.unity ? props.options.unity : 'kg'}`,
             pause
           }
         )
@@ -24,15 +24,17 @@ export default function NewWorkout(props) {
   };
 
   const finishWorkout = () => {
-    const newProgram = props.program;
-    let id = newProgram.workouts && newProgram.workouts.length ? newProgram.workouts[newProgram.workouts.length - 1].id : 0;
-    id++;
-    newProgram.workouts.push({
-      id,
-      sets: workouts,
-      done: false
-    });
-    AsyncStorage.setItem(newProgram.name + newProgram.id, JSON.stringify(newProgram));
+    if (workouts && workouts.length) {
+      const newProgram = props.program;
+      let id = newProgram.workouts && newProgram.workouts.length ? newProgram.workouts[newProgram.workouts.length - 1].id : 0;
+      id++;
+      newProgram.workouts.push({
+        id,
+        sets: workouts,
+        done: false
+      });
+      AsyncStorage.setItem(newProgram.name + newProgram.id, JSON.stringify(newProgram));
+    }
     props.setVisible(!props.visible);
     props.load();
   };
@@ -42,7 +44,7 @@ export default function NewWorkout(props) {
   const [sets, setSets] = useState('');
   const [reps, setReps] = useState('');
   const [weight, setWeight] = useState('');
-  const [pause, setPause] = useState(props.options.setBreak);
+  const [pause, setPause] = useState(props.options.setBreak ? props.options.setBreak : 120);
   const [visible, setVisible] = useState(false);
   const [visibleDialog, setVisibleDialog] = useState(false);
   const [showError, setShowError]= useState(false);
@@ -99,7 +101,7 @@ export default function NewWorkout(props) {
           </View>
         }
       >
-        { props.exercices ? props.exercices.map(exercice => {
+        { props.exercices && props.exercices.length ? props.exercices.map(exercice => {
             return (
               <Menu.Item key={exercice.id} onPress={() => {
                 setExercice({id: exercice.id, name: exercice.name});
@@ -128,7 +130,7 @@ export default function NewWorkout(props) {
         dense={true}
         keyboardType={'numeric'}
         style={styles.input}
-        label={`Poids (en ${props.options.unity})`}
+        label={`Poids (en ${props.options.unity ? props.options.unity : 'kg'})`}
         value={weight}
         onChangeText={text => setWeight(text)}
       />
@@ -150,19 +152,21 @@ export default function NewWorkout(props) {
       <Button mode="text" onPress={() => setVisibleDialog(!visibleDialog)}>
         Aperçu
       </Button>
-      <Dialog
-        visible={visibleDialog}
-        onDismiss={() => setVisibleDialog(!visibleDialog)}>
-        <Dialog.Title>Aperçu de la séance</Dialog.Title>
-        <Dialog.Content>
-          <ScrollView style={styles.scroll}>
-            { workouts && workouts.length ? workouts.map((item, index) => <Workout key={index} item={item} exercices={props.exercices} />): null }
-          </ScrollView>
-        </Dialog.Content>
-        <Dialog.Actions>
-          <Button onPress={() => setVisibleDialog(!visibleDialog)}>Fermer</Button>
-        </Dialog.Actions>
-      </Dialog>
+      <Portal>
+        <Dialog
+          visible={visibleDialog}
+          onDismiss={() => setVisibleDialog(!visibleDialog)}>
+          <Dialog.Title>Aperçu de la séance</Dialog.Title>
+          <Dialog.Content>
+            <ScrollView style={styles.scroll}>
+              { workouts && workouts.length ? workouts.map((item, index) => <Workout key={index} item={item} exercices={props.exercices} />): null }
+            </ScrollView>
+          </Dialog.Content>
+          <Dialog.Actions>
+            <Button onPress={() => setVisibleDialog(!visibleDialog)}>Fermer</Button>
+          </Dialog.Actions>
+        </Dialog>
+      </Portal>
     </View>
   )
 }
