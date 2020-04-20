@@ -79,7 +79,7 @@ export default function Max(props) {
       height: '100%'
     },
     main: {
-      flex: 1
+      flexGrow: 1
     },
     noresults: {
       flex: 1,
@@ -128,26 +128,24 @@ export default function Max(props) {
     <View style={styles.container}>
       <Header title="Max (1RM)" navigation={props.navigation} />
       { exercices && exercices.length ?
-        <View style={styles.main}>
-          <ScrollView contentContainerStyle={styles.main}>
-            { exercices.map(exercice => {
-              return (
-                <View key={exercice.id} style={styles.row}>
-                  <Text style={styles.name}>{ exercice.name }</Text>
-                  <EditableText
-                    text={ exercice.max && exercice.max.length ? exercice.max[exercice.max.length - 1].weight : 'NC' }
-                    sendText={text => sendText(exercice, text, exercice.max && exercice.max.length ? exercice.max[exercice.max.length - 1].weight : 'NC')}
-                  />
-                  <IconButton
-                    style={styles.deleteIcon}
-                    icon="chart-line"
-                    size={20}
-                    onPress={() => showGraph(exercice)} />
-                </View>
-              )})
-            }
-          </ScrollView>
-        </View> : <View style={styles.noresults}>
+        <ScrollView contentContainerStyle={styles.main}>
+          { exercices.map(exercice => {
+            return (
+              <View key={exercice.id} style={styles.row}>
+                <Text style={styles.name}>{ exercice.name }</Text>
+                <EditableText
+                  text={ exercice.max && exercice.max.length ? exercice.max[exercice.max.length - 1].weight : 'NC' }
+                  sendText={text => sendText(exercice, text, exercice.max && exercice.max.length ? exercice.max[exercice.max.length - 1].weight : 'NC')}
+                />
+                <IconButton
+                  style={styles.deleteIcon}
+                  icon="chart-line"
+                  size={20}
+                  onPress={() => showGraph(exercice)} />
+              </View>
+            )})
+          }
+        </ScrollView> : <View style={styles.noresults}>
           <Text>Aucun exercice</Text>
         </View> }
       <Portal>

@@ -52,7 +52,7 @@ export default function Exercices(props) {
       height: '100%'
     },
     main: {
-      flex: 1
+      flexGrow: 1
     },
     noresults: {
       flex: 1,
@@ -92,27 +92,25 @@ export default function Exercices(props) {
     <View style={styles.container}>
       <Header title="Exercices" navigation={props.navigation} />
       { exercices && exercices.length ?
-        <View style={styles.main}>
-          <ScrollView contentContainerStyle={styles.main}>
-            { exercices.map(exercice => {
-              return (
-                <View key={exercice.id}>
-                  <List.Item
-                    title={exercice.name}
-                    left={() => exercice.image ? <Image
-                      source={{ uri: exercice.image.localUri }}
-                      style={styles.thumbnail} /> : <Text style={styles.nothumbnail}>Aucune photo</Text>}
-                    right={() => <IconButton
-                      style={styles.deleteIcon}
-                      icon="delete"
-                      size={20}
-                      onPress={() => confirmDeleteExercice(exercice)} />}
-                  />
-                </View>
-              )})
-            }
-          </ScrollView>
-        </View> : <View style={styles.noresults}>
+        <ScrollView contentContainerStyle={styles.main}>
+          { exercices.map(exercice => {
+            return (
+              <View key={exercice.id}>
+                <List.Item
+                  title={exercice.name}
+                  left={() => exercice.image ? <Image
+                    source={{ uri: exercice.image.localUri }}
+                    style={styles.thumbnail} /> : <Text style={styles.nothumbnail}>Aucune photo</Text>}
+                  right={() => <IconButton
+                    style={styles.deleteIcon}
+                    icon="delete"
+                    size={20}
+                    onPress={() => confirmDeleteExercice(exercice)} />}
+                />
+              </View>
+            )})
+          }
+        </ScrollView>  : <View style={styles.noresults}>
           <Text>Aucun exercice</Text>
         </View>
       }

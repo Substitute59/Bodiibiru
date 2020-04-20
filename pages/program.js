@@ -186,9 +186,10 @@ export default function Program(props) {
 
     return exercice && exercice.length ? <View>
       <Title style={styles.title}>{ exercice[0].name }</Title>
-      <Image
+      { exercice[0].image ? <Image
         source={{ uri: exercice[0].image.localUri }}
-        style={styles.thumbnail} />
+        style={styles.thumbnail} /> : <Text style={styles.nothumbnail}>Aucune photo</Text>
+      }
       <Text style={styles.infosExercice}>{currentWorkout.sets[currentSet].reps}reps@{currentWorkout.sets[currentSet].weight}</Text>
     </View> : null;
   }
@@ -198,12 +199,15 @@ export default function Program(props) {
       height: '100%'
     },
     main: {
+      flex: 1
+    },
+    noresults: {
       flex: 1,
       justifyContent: 'center',
       alignItems: 'center'
     },
     scroll: {
-      flex: 1
+      flexGrow: 1
     },
     set: {
       flex: 1,
@@ -247,6 +251,16 @@ export default function Program(props) {
       resizeMode: "contain",
       alignSelf: 'center'
     },
+    nothumbnail: {
+      width: 200,
+      height: 200,
+      paddingVertical: 75,
+      lineHeight: 50,
+      textAlign: 'center',
+      borderColor: 'rgba(0, 0, 0, 0.12)',
+      borderWidth: 1,
+      alignSelf: 'center'
+    },
     infosExercice: {
       fontSize: 20,
       alignSelf: 'center',
@@ -284,16 +298,18 @@ export default function Program(props) {
     <View style={styles.container}>
       <Header title={ program ? program.name : 'Programme' } navigation={props.navigation} />
       {currentWorkout ? (
-        <View style={styles.scroll}>
+        <View style={styles.main}>
           {step === 'begin' ? (
-            <View style={styles.scroll}>
+            <View style={styles.main}>
               <Title style={styles.title}>Séance du jour</Title>
               <ScrollView contentContainerStyle={styles.scroll}>
                 { currentWorkout.sets && currentWorkout.sets.length ? currentWorkout.sets.map((item, index) => <Workout key={index} item={item} exercices={exercices} />): null }
               </ScrollView>
-              <Button style={styles.button} icon="timer" mode="contained" onPress={() => beginWorkout()}>
-                Commencer
-              </Button>
+              <View>
+                <Button style={styles.button} icon="timer" mode="contained" onPress={() => beginWorkout()}>
+                  Commencer
+                </Button>
+              </View>
               <FAB
                 style={styles.fab}
                 small
@@ -348,7 +364,7 @@ export default function Program(props) {
           />
         </View>
       ) : (
-        <View style={styles.main}>
+        <View style={styles.noresults}>
           <Text>Aucune séance programmée</Text>
           <FAB
             style={styles.fab}

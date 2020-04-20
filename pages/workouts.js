@@ -58,7 +58,7 @@ export default function Workouts(props) {
       height: '100%'
     },
     scroll: {
-      flex: 1
+      flexGrow: 1
     },
     eyeIcon: {
       alignSelf: 'center'
@@ -71,25 +71,23 @@ export default function Workouts(props) {
   return (
     <View style={styles.container}>
       <Header title={ program ? program.name : 'Séance' } navigation={props.navigation} />
-      <View style={styles.scroll}>
-        {program.workouts && program.workouts.length ? (
-          <ScrollView contentContainerStyle={styles.scroll}>
-            { program.workouts.map((wo, index) => {
-              return wo.done ? (
-                <List.Item
-                  key={index}
-                  title={`Séance du ${ getFormattedDate(wo.date) }`}
-                  right={() => <IconButton
-                    style={styles.eyeIcon}
-                    icon="eye"
-                    size={20}
-                    onPress={() => showWorkout(wo)} />}
-                />
-              ) : null;
-            }) }
-          </ScrollView>
-        ) : null}
-      </View>
+      {program.workouts && program.workouts.length ? (
+        <ScrollView contentContainerStyle={styles.scroll}>
+          { program.workouts.map((wo, index) => {
+            return wo.done ? (
+              <List.Item
+                key={index}
+                title={`Séance du ${ getFormattedDate(wo.date) }`}
+                right={() => <IconButton
+                  style={styles.eyeIcon}
+                  icon="eye"
+                  size={20}
+                  onPress={() => showWorkout(wo)} />}
+              />
+            ) : null;
+          }) }
+        </ScrollView>
+      ) : null}
       <Portal>
         <Dialog
           visible={visibleDialog}
